@@ -16,6 +16,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'grupo_id',
+        'rol',
     ];
 
     protected $hidden = [
@@ -31,9 +32,36 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    // Controla acceso según el rol y el panel
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        if ($this->rol === 'admin' && $panel->getId() === 'admin') {
+            return true;
+        }
+
+        if ($this->rol === 'estudiante' && $panel->getId() === 'estudiante') {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function getRedirectPath(): ?string
+    {
+        if ($this->rol === 'admin') {
+            return '/admin'; // dashboard del panel admin
+        }
+
+        if ($this->rol === 'estudiante') {
+            return '/estudiante'; // dashboard del panel estudiante
+        }
+
+        return '/'; // fallback
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->rol === 'admin';
     }
 
     public function grupo()
@@ -51,7 +79,6 @@ class User extends Authenticatable implements FilamentUser
         return $this->registrosReciclaje()->sum('puntos_ganados');
     }
 
-    // EXTRA: si quieres mantener tus métodos adicionales, no necesitas cambiar nada
     public function getPuntosEnPeriodo($fechaInicio, $fechaFin)
     {
         return $this->registrosReciclaje()

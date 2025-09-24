@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('grupo_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
+            $table->string('rol')->default('estudiante');
         });
 
         // AGREGAR LA FOREIGN KEY DESPUÉS, en una migración separada o al final
