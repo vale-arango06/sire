@@ -17,53 +17,28 @@ class RegistroReciclaje extends Model
         'tipo_id',
         'grupo_id',
         'cantidad',
-        'fecha',
         'cantidad_kg',
-        'puntos_ganados'
+        'puntos_ganados',
+        'fecha',
+        'unidad_medida',
     ];
 
-    protected $casts = [
-        'fecha' => 'datetime',
-        'cantidad' => 'decimal:2',
-        'cantidad_kg' => 'decimal:2',
-    ];
-
-    // Evento que se ejecuta antes de crear el registro
-    protected static function boot()
+    /**
+     * Calcular puntos automáticamente al crear un registro.
+     */
+    protected static function booted()
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->puntos_ganados = $model->calcularPuntos();
-        });
-
-        static::updating(function ($model) {
-            $model->puntos_ganados = $model->calcularPuntos();
+        static::creating(function ($registro) {
+            // ⚖️ Ejemplo: 2 puntos por cada kg
+            if (!empty($registro->cantidad_kg)) {
+                $registro->puntos_ganados = $registro->cantidad_kg * 2;
+            } else {
+                $registro->puntos_ganados = 0;
+            }
         });
     }
 
-    // Método para calcular puntos basado en el material
-    private function calcularPuntos()
-    {
-        // Si no hay material_id o cantidad_kg, retornar 0
-        if (!$this->material_id || !$this->cantidad_kg) {
-            return 0;
-        }
-
-        // Obtener el material con su valor en puntos
-        $material = Material::find($this->material_id);
-        
-        if (!$material) {
-            return 0;
-        }
-
-        // Calcular puntos: cantidad_kg * puntos_por_kg del material
-        // Asumiendo que el modelo Material tiene un campo 'puntos_por_kg' o 'valor_puntos'
-        $puntosPorKg = $material->puntos_por_kg ?? $material->valor_puntos ?? 1;
-        
-        return (int) ($this->cantidad_kg * $puntosPorKg);
-    }
-
+    // Relaciones
     public function usuario()
     {
         return $this->belongsTo(User::class, 'usuario_id');
@@ -71,16 +46,16 @@ class RegistroReciclaje extends Model
 
     public function material()
     {
-        return $this->belongsTo(Material::class);
+        return $this->belongsTo(Material::class, 'material_id');
     }
 
-    public function tipoReciclaje()
+    public function tipo()
     {
         return $this->belongsTo(TipoReciclaje::class, 'tipo_id');
     }
 
     public function grupo()
     {
-        return $this->belongsTo(Grupo::class);
+        return $this->belongsTo(Grupo::class, 'grupo_id');
     }
 }

@@ -28,7 +28,7 @@ class EstudiantePanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Fuchsia,
             ])
-            ->login() 
+            ->login()
             ->discoverResources(in: app_path('Filament/Estudiante/Resources'), for: 'App\\Filament\\Estudiante\\Resources')
             ->discoverPages(in: app_path('Filament/Estudiante/Pages'), for: 'App\\Filament\\Estudiante\\Pages')
             ->pages([
@@ -36,6 +36,8 @@ class EstudiantePanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Estudiante/Widgets'), for: 'App\\Filament\\Estudiante\\Widgets')
             ->widgets([
+                \App\Filament\Estudiante\Widgets\EstudianteStats::class,
+                \App\Filament\Estudiante\Widgets\RecompensasWidget::class,
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
             ])
