@@ -4,43 +4,39 @@ namespace App\Filament\Estudiante\Resources;
 
 use App\Filament\Estudiante\Resources\RegistroReciclajeResource\Pages;
 use App\Models\RegistroReciclaje;
+use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\DatePicker;
 use Filament\Resources\Resource;
+use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class RegistroReciclajeResource extends Resource
 {
     protected static ?string $model = RegistroReciclaje::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-trash';
+    protected static ?string $navigationIcon = 'heroicon-o-recycle';
     protected static ?string $navigationLabel = 'Mis Registros';
-    protected static ?string $pluralModelLabel = 'Mis Registros';
+    protected static ?string $pluralModelLabel = 'Registros de Reciclaje';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Select::make('material_id')
+                Forms\Components\Select::make('material_id')
                     ->label('Material')
                     ->relationship('material', 'nombre')
                     ->required(),
 
-                TextInput::make('cantidad')
+                Forms\Components\Select::make('tipo_id')
+                    ->label('Tipo')
+                    ->relationship('tipo', 'nombre')
+                    ->required(),
+
+                Forms\Components\TextInput::make('cantidad')
                     ->label('Cantidad')
                     ->numeric()
-                    ->required(),
-
-                TextInput::make('unidad_medida')
-                    ->label('Unidad de Medida')
-                    ->maxLength(20)
-                    ->required(),
-
-                DatePicker::make('fecha')
-                    ->label('Fecha del Registro')
                     ->required(),
             ]);
     }
@@ -49,23 +45,48 @@ class RegistroReciclajeResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('material.nombre')->label('Material'),
-                TextColumn::make('cantidad')->label('Cantidad'),
-                TextColumn::make('unidad_medida')->label('Unidad'),
-                TextColumn::make('fecha')
+                Tables\Columns\TextColumn::make('material.nombre')
+                    ->label('Material')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('tipo.nombre')
+                    ->label('Tipo')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('cantidad')
+                    ->label('Cantidad'),
+
+                Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha')
-                    ->date('Y-m-d'), // 👈 solo año-mes-día
-                TextColumn::make('created_at')
-                    ->label('Registrado en')
-                    ->date('Y-m-d'), // 👈 solo año-mes-día
+                    ->dateTime('d/m/Y H:i'),
             ])
-            ->defaultSort('fecha', 'desc');
+            ->filters([])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ]);
+    }
+
+    /**
+     * 🔒 Cada estudiante solo verá sus propios registros
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('usuario_id', Auth::id());
+    }
+
+    public static function getRelations(): array
+    {
+        return [];
     }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListRegistroReciclajes::route('/'),
+            'create' => Pages\CreateRegistroReciclaje::route('/create'),
+            'edit' => Pages\EditRegistroReciclaje::route('/{record}/edit'),
         ];
     }
 }

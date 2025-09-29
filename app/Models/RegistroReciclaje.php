@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class RegistroReciclaje extends Model
 {
@@ -24,12 +25,18 @@ class RegistroReciclaje extends Model
     ];
 
     /**
-     * Calcular puntos automáticamente al crear un registro.
+     * Asignar usuario y calcular puntos automáticamente al crear un registro.
      */
     protected static function booted()
     {
         static::creating(function ($registro) {
-            // ⚖️ Ejemplo: 2 puntos por cada kg
+            // obtener id del usuario autenticado de forma segura (devuelve null si no hay)
+            $userId = Auth::id();
+            if (!empty($userId) && empty($registro->usuario_id)) {
+                $registro->usuario_id = $userId;
+            }
+
+            // calcular puntos automáticamente
             if (!empty($registro->cantidad_kg)) {
                 $registro->puntos_ganados = $registro->cantidad_kg * 2;
             } else {

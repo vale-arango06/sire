@@ -9,6 +9,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class RegistroReciclajeResource extends Resource
 {
@@ -67,10 +69,10 @@ class RegistroReciclajeResource extends Resource
                 Tables\Columns\TextColumn::make('puntos')->label('Puntos'),
                 Tables\Columns\TextColumn::make('fecha')
                     ->label('Fecha')
-                    ->date('Y-m-d'), // 👈 solo año-mes-día
+                    ->date('d/m/Y'), // ✅ solo fecha sin hora
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Registrado en')
-                    ->date('Y-m-d'), // 👈 solo año-mes-día
+                    ->date('d/m/Y'), // ✅ solo fecha sin hora
             ])
             ->filters([])
             ->actions([
