@@ -36,15 +36,18 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
-    // Controla acceso según el rol y el panel
+    // CORREGIDO: Permite acceso incluso si el rol es null o no está definido
     public function canAccessPanel(Panel $panel): bool
     {
-        if ($this->rol === 'admin' && $panel->getId() === 'admin') {
-            return true;
+        // Si es panel admin
+        if ($panel->getId() === 'admin') {
+            // Permitir si es admin O si no tiene rol definido (para usuarios creados con make:filament-user)
+            return $this->rol === 'admin' || empty($this->rol) || is_null($this->rol);
         }
 
-        if ($this->rol === 'estudiante' && $panel->getId() === 'estudiante') {
-            return true;
+        // Si es panel estudiante
+        if ($panel->getId() === 'estudiante') {
+            return $this->rol === 'estudiante';
         }
 
         return false;
@@ -52,20 +55,20 @@ class User extends Authenticatable implements FilamentUser
 
     public function getRedirectPath(): ?string
     {
-        if ($this->rol === 'admin') {
-            return '/admin'; // dashboard del panel admin
+        if ($this->rol === 'admin' || empty($this->rol)) {
+            return '/admin';
         }
 
         if ($this->rol === 'estudiante') {
-            return '/estudiante'; // dashboard del panel estudiante
+            return '/estudiante';
         }
 
-        return '/'; // fallback
+        return '/';
     }
 
     public function isAdmin(): bool
     {
-        return $this->rol === 'admin';
+        return $this->rol === 'admin' || empty($this->rol);
     }
 
     public function grupo()
@@ -80,14 +83,14 @@ class User extends Authenticatable implements FilamentUser
 
     public function getTotalPuntosAttribute()
     {
-        return $this->registrosReciclaje()->sum('puntos_ganados');
+        return $this->registrosReciclaje()->sum('puntos_ganados') ?? 0;
     }
 
     public function getPuntosEnPeriodo($fechaInicio, $fechaFin)
     {
         return $this->registrosReciclaje()
             ->whereBetween('fecha', [$fechaInicio, $fechaFin])
-            ->sum('puntos_ganados');
+            ->sum('puntos_ganados') ?? 0;
     }
 
     public function getRankingPosition()
@@ -111,7 +114,7 @@ class User extends Authenticatable implements FilamentUser
         $totalPuntos = $this->getTotalPuntosAttribute();
         $puntosUtilizados = $this->canjes()
             ->where('estado', '!=', 'cancelada')
-            ->sum('puntos_utilizados');
+            ->sum('puntos_utilizados') ?? 0;
         
         return $totalPuntos - $puntosUtilizados;
     }

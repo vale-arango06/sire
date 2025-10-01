@@ -9,49 +9,75 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 
 class RegistroReciclajeResource extends Resource
 {
     protected static ?string $model = RegistroReciclaje::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-trash';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Registros Reciclaje';
+    protected static ?string $navigationGroup = 'Reciclaje';
+    protected static ?string $pluralModelLabel = 'Registros de Reciclaje';
+    protected static ?string $modelLabel = 'Registro de Reciclaje';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Select::make('usuario_id')
+                    ->label('Estudiante')
                     ->relationship('usuario', 'name')
-                    ->required(),
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if ($state) {
+                            $usuario = \App\Models\User::find($state);
+                            if ($usuario && $usuario->grupo_id) {
+                                $set('grupo_id', $usuario->grupo_id);
+                            }
+                        }
+                    }),
 
                 Forms\Components\Select::make('material_id')
+                    ->label('Material')
                     ->relationship('material', 'nombre')
+                    ->searchable()
+                    ->preload()
                     ->required(),
 
                 Forms\Components\Select::make('tipo_id')
+                    ->label('Tipo de Reciclaje')
                     ->relationship('tipo', 'nombre')
                     ->required(),
 
                 Forms\Components\Select::make('grupo_id')
+                    ->label('Grupo')
                     ->relationship('grupo', 'nombre')
+                    ->searchable()
+                    ->preload()
                     ->required(),
 
                 Forms\Components\TextInput::make('cantidad')
+                    ->label('Cantidad')
                     ->numeric()
+                    ->minValue(0)
+                    ->step(0.01)
                     ->required(),
 
                 Forms\Components\TextInput::make('cantidad_kg')
+                    ->label('Cantidad en KG')
                     ->numeric()
-                    ->required(),
+                    ->minValue(0)
+                    ->step(0.01)
+                    ->required()
+                    ->helperText('Los puntos se calcularán automáticamente'),
 
-                Forms\Components\TextInput::make('puntos')
-                    ->numeric()
-                    ->required(),
-
-                Forms\Components\DatePicker::make('fecha')
+                Forms\Components\DateTimePicker::make('fecha')
+                    ->label('Fecha y Hora')
+                    ->default(now())
                     ->required(),
             ]);
     }
@@ -60,28 +86,72 @@ class RegistroReciclajeResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('usuario.name')->label('Usuario'),
-                Tables\Columns\TextColumn::make('material.nombre')->label('Material'),
-                Tables\Columns\TextColumn::make('tipo.nombre')->label('Tipo'),
-                Tables\Columns\TextColumn::make('grupo.nombre')->label('Grupo'),
-                Tables\Columns\TextColumn::make('cantidad')->label('Cantidad'),
-                Tables\Columns\TextColumn::make('cantidad_kg')->label('Cantidad KG'),
-                Tables\Columns\TextColumn::make('puntos')->label('Puntos'),
+                Tables\Columns\TextColumn::make('usuario.name')
+                    ->label('Estudiante')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('material.nombre')
+                    ->label('Material')
+                    ->badge()
+                    ->color('info')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('tipo.nombre')
+                    ->label('Tipo')
+                    ->badge()
+                    ->color('primary'),
+
+                Tables\Columns\TextColumn::make('grupo.nombre')
+                    ->label('Grupo')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('cantidad')
+                    ->label('Cantidad')
+                    ->suffix(fn ($record) => ' ' . ($record->material->unidad_medida ?? '')),
+
+                Tables\Columns\TextColumn::make('cantidad_kg')
+                    ->label('Peso (kg)')
+                    ->numeric(decimalPlaces: 2)
+                    ->suffix(' kg')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('puntos_ganados')
+                    ->label('Puntos')
+                    ->numeric()
+                    ->badge()
+                    ->color('success')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('fecha')
                     ->label('Fecha')
-                    ->date('d/m/Y'), // ✅ solo fecha sin hora
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Registrado en')
-                    ->date('d/m/Y'), // ✅ solo fecha sin hora
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
             ])
-            ->filters([])
+            ->filters([
+                Tables\Filters\SelectFilter::make('usuario_id')
+                    ->label('Estudiante')
+                    ->relationship('usuario', 'name')
+                    ->searchable()
+                    ->preload(),
+
+                Tables\Filters\SelectFilter::make('material_id')
+                    ->label('Material')
+                    ->relationship('material', 'nombre'),
+
+                Tables\Filters\SelectFilter::make('grupo_id')
+                    ->label('Grupo')
+                    ->relationship('grupo', 'nombre'),
+            ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
-            ]);
+            ])
+            ->defaultSort('fecha', 'desc');
     }
 
     public static function getPages(): array

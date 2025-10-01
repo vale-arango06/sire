@@ -30,10 +30,12 @@ class RegistroReciclaje extends Model
     protected static function booted()
     {
         static::creating(function ($registro) {
-            // obtener id del usuario autenticado de forma segura (devuelve null si no hay)
-            $userId = Auth::id();
-            if (!empty($userId) && empty($registro->usuario_id)) {
-                $registro->usuario_id = $userId;
+            // si ya viene usuario_id (ej: desde admin) no lo sobrescribas
+            if (empty($registro->usuario_id)) {
+                $userId = Auth::id();
+                if (!empty($userId)) {
+                    $registro->usuario_id = $userId;
+                }
             }
 
             // calcular puntos automáticamente

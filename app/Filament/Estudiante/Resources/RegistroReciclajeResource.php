@@ -16,55 +16,79 @@ class RegistroReciclajeResource extends Resource
 {
     protected static ?string $model = RegistroReciclaje::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-recycle';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Mis Registros';
     protected static ?string $pluralModelLabel = 'Registros de Reciclaje';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\Select::make('material_id')
-                    ->label('Material')
-                    ->relationship('material', 'nombre')
-                    ->required(),
-
-                Forms\Components\Select::make('tipo_id')
-                    ->label('Tipo')
-                    ->relationship('tipo', 'nombre')
-                    ->required(),
-
-                Forms\Components\TextInput::make('cantidad')
-                    ->label('Cantidad')
-                    ->numeric()
-                    ->required(),
-            ]);
+        // Sin formulario - solo lectura
+        return $form->schema([]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('material.nombre')
-                    ->label('Material')
+                Tables\Columns\TextColumn::make('fecha')
+                    ->label('📅 Fecha')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('material.nombre')
+                    ->label('♻️ Material')
+                    ->searchable()
+                    ->badge()
+                    ->color('info'),
 
                 Tables\Columns\TextColumn::make('tipo.nombre')
-                    ->label('Tipo')
-                    ->sortable(),
+                    ->label('🏷️ Tipo')
+                    ->badge()
+                    ->color('primary'),
 
                 Tables\Columns\TextColumn::make('cantidad')
-                    ->label('Cantidad'),
+                    ->label('📦 Cantidad')
+                    ->suffix(fn ($record) => ' ' . ($record->material->unidad_medida ?? '')),
 
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Fecha')
-                    ->dateTime('d/m/Y H:i'),
+                Tables\Columns\TextColumn::make('cantidad_kg')
+                    ->label('⚖️ Peso')
+                    ->numeric(decimalPlaces: 2)
+                    ->suffix(' kg')
+                    ->weight('bold'),
+
+                Tables\Columns\TextColumn::make('puntos_ganados')
+                    ->label('⭐ Puntos')
+                    ->numeric()
+                    ->badge()
+                    ->color('success')
+                    ->size('lg'),
             ])
-            ->filters([])
+            ->filters([
+                Tables\Filters\SelectFilter::make('material_id')
+                    ->label('Material')
+                    ->relationship('material', 'nombre')
+                    ->searchable()
+                    ->preload(),
+                
+                Tables\Filters\SelectFilter::make('tipo_id')
+                    ->label('Tipo')
+                    ->relationship('tipo', 'nombre'),
+                
+                Tables\Filters\Filter::make('este_mes')
+                    ->label('📅 Este mes')
+                    ->query(fn ($query) => $query->whereMonth('fecha', now()->month)->whereYear('fecha', now()->year)),
+            ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ]);
+                // Solo ver detalles, no editar ni eliminar
+                Tables\Actions\ViewAction::make()
+                    ->label('👁️ Ver'),
+            ])
+            ->bulkActions([])
+            ->defaultSort('fecha', 'desc')
+            ->emptyStateHeading('📝 No tienes registros aún')
+            ->emptyStateDescription('Cuando el administrador registre tu reciclaje, aparecerá aquí.')
+            ->emptyStateIcon('heroicon-o-clipboard-document');
     }
 
     /**
@@ -73,7 +97,29 @@ class RegistroReciclajeResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('usuario_id', Auth::id());
+            ->when(Auth::id(), fn($query, $id) => $query->where('usuario_id', $id));
+    }
+
+    // 🚫 Deshabilitar permisos de crear/editar/eliminar
+    public static function canCreate(): bool
+    {
+        return false; // Estudiantes NO pueden crear registros
+    }
+
+    public static function canEdit($record): bool
+    {
+        return false; // Estudiantes NO pueden editar registros
+    }
+
+    public static function canDelete($record): bool
+    {
+        return false; // Estudiantes NO pueden eliminar registros
+    }
+
+    public static function canView($record): bool
+    {
+        // Solo puede ver sus propios registros
+        return $record->usuario_id === Auth::id();
     }
 
     public static function getRelations(): array
@@ -85,8 +131,8 @@ class RegistroReciclajeResource extends Resource
     {
         return [
             'index' => Pages\ListRegistroReciclajes::route('/'),
-            'create' => Pages\CreateRegistroReciclaje::route('/create'),
-            'edit' => Pages\EditRegistroReciclaje::route('/{record}/edit'),
+            // Eliminar create y edit ya que los estudiantes no pueden crear/editar
+            'view' => Pages\ViewRegistroReciclaje::route('/{record}'),
         ];
     }
 }
