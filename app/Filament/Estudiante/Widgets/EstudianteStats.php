@@ -23,6 +23,7 @@ class EstudianteStats extends BaseWidget
             ->whereYear('fecha', now()->year)
             ->count();
         $totalMateriales = RegistroReciclaje::where('usuario_id', $usuario->id)->sum('cantidad_kg');
+//$puntosTotal = RegistroReciclaje::where('usuario_id', $usuario->id)->sum('cantidad_kg');
 
         return [
             Stat::make('Mis Puntos Totales', $puntosTotal ?: 0)

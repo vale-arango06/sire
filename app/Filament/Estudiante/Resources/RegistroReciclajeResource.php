@@ -21,6 +21,15 @@ class RegistroReciclajeResource extends Resource
     protected static ?string $pluralModelLabel = 'Registros de Reciclaje';
     protected static ?int $navigationSort = 3;
 
+    /**
+     * FILTRO CRÍTICO: Cada estudiante solo verá sus propios registros
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('usuario_id', Auth::id());
+    }
+
     public static function form(Form $form): Form
     {
         // Sin formulario - solo lectura
@@ -32,33 +41,33 @@ class RegistroReciclajeResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('fecha')
-                    ->label('📅 Fecha')
+                    ->label('Fecha')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('material.nombre')
-                    ->label('♻️ Material')
+                    ->label('Material')
                     ->searchable()
                     ->badge()
                     ->color('info'),
 
                 Tables\Columns\TextColumn::make('tipo.nombre')
-                    ->label('🏷️ Tipo')
+                    ->label('Tipo')
                     ->badge()
                     ->color('primary'),
 
                 Tables\Columns\TextColumn::make('cantidad')
-                    ->label('📦 Cantidad')
+                    ->label('Cantidad')
                     ->suffix(fn ($record) => ' ' . ($record->material->unidad_medida ?? '')),
 
                 Tables\Columns\TextColumn::make('cantidad_kg')
-                    ->label('⚖️ Peso')
+                    ->label('Peso')
                     ->numeric(decimalPlaces: 2)
                     ->suffix(' kg')
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('puntos_ganados')
-                    ->label('⭐ Puntos')
+                    ->label('Puntos')
                     ->numeric()
                     ->badge()
                     ->color('success')
@@ -76,44 +85,37 @@ class RegistroReciclajeResource extends Resource
                     ->relationship('tipo', 'nombre'),
                 
                 Tables\Filters\Filter::make('este_mes')
-                    ->label('📅 Este mes')
+                    ->label('Este mes')
                     ->query(fn ($query) => $query->whereMonth('fecha', now()->month)->whereYear('fecha', now()->year)),
+                
+                Tables\Filters\Filter::make('esta_semana')
+                    ->label('Esta semana')
+                    ->query(fn ($query) => $query->whereBetween('fecha', [now()->startOfWeek(), now()->endOfWeek()])),
             ])
             ->actions([
-                // Solo ver detalles, no editar ni eliminar
                 Tables\Actions\ViewAction::make()
-                    ->label('👁️ Ver'),
+                    ->label('Ver'),
             ])
             ->bulkActions([])
             ->defaultSort('fecha', 'desc')
-            ->emptyStateHeading('📝 No tienes registros aún')
+            ->emptyStateHeading('No tienes registros aún')
             ->emptyStateDescription('Cuando el administrador registre tu reciclaje, aparecerá aquí.')
             ->emptyStateIcon('heroicon-o-clipboard-document');
     }
 
-    /**
-     * 🔒 Cada estudiante solo verá sus propios registros
-     */
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->when(Auth::id(), fn($query, $id) => $query->where('usuario_id', $id));
-    }
-
-    // 🚫 Deshabilitar permisos de crear/editar/eliminar
     public static function canCreate(): bool
     {
-        return false; // Estudiantes NO pueden crear registros
+        return false;
     }
 
     public static function canEdit($record): bool
     {
-        return false; // Estudiantes NO pueden editar registros
+        return false;
     }
 
     public static function canDelete($record): bool
     {
-        return false; // Estudiantes NO pueden eliminar registros
+        return false;
     }
 
     public static function canView($record): bool
@@ -131,7 +133,6 @@ class RegistroReciclajeResource extends Resource
     {
         return [
             'index' => Pages\ListRegistroReciclajes::route('/'),
-            // Eliminar create y edit ya que los estudiantes no pueden crear/editar
             'view' => Pages\ViewRegistroReciclaje::route('/{record}'),
         ];
     }

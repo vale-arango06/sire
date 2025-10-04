@@ -14,7 +14,7 @@ class ListRegistroReciclajes extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('➕ Nuevo Registro'),
+                ->label('Nuevo Registro'),
         ];
     }
 }

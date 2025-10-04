@@ -44,7 +44,7 @@ class RegistroReciclajeResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('material.nombre')->label('Material'),
+                TextColumn::make('material.nombre')->label('Materialll'),
                 TextColumn::make('cantidad')->label('Cantidad'),
                 TextColumn::make('fecha')->label('Fecha'),
             ])

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,15 +29,12 @@ class RegistroReciclaje extends Model
     protected static function booted()
     {
         static::creating(function ($registro) {
-            // si ya viene usuario_id (ej: desde admin) no lo sobrescribas
-            if (empty($registro->usuario_id)) {
-                $userId = Auth::id();
-                if (!empty($userId)) {
-                    $registro->usuario_id = $userId;
-                }
+            // CORREGIDO: Solo asignar Auth::id() si usuario_id es NULL (no viene del formulario)
+            if (is_null($registro->usuario_id)) {
+                $registro->usuario_id = Auth::id();
             }
 
-            // calcular puntos automáticamente
+            // Calcular puntos automáticamente
             if (!empty($registro->cantidad_kg)) {
                 $registro->puntos_ganados = $registro->cantidad_kg * 2;
             } else {
