@@ -12,7 +12,8 @@ use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 
-class RegistroReciclajeResource extends Resource
+class EstudianteResource extends Resource
+
 {
     protected static ?string $model = RegistroReciclaje::class;
 

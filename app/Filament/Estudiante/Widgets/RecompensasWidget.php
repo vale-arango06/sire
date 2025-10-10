@@ -44,7 +44,7 @@ class RecompensasWidget extends BaseWidget
                         }
 
                         try {
-                            // Decrement atómico solo si tiene suficientes puntos
+                            
                             $affected = DB::table('users')
                                 ->where('id', $user->id)
                                 ->where('puntos', '>=', $required)
@@ -55,8 +55,7 @@ class RecompensasWidget extends BaseWidget
                                 return;
                             }
 
-                            // opcional: registrar en pivot/tabla de historial
-                            // DB::table('usuario_recompensas')->insert([...]);
+                            
 
                             $this->notify('success', '¡Has reclamado la recompensa!');
                         } catch (\Throwable $e) {

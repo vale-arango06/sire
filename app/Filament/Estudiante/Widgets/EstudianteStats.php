@@ -16,14 +16,14 @@ class EstudianteStats extends BaseWidget
             return [];
         }
 
-        // Usando consultas directas
+        
         $puntosTotal = RegistroReciclaje::where('usuario_id', $usuario->id)->sum('puntos_ganados');
         $registrosMes = RegistroReciclaje::where('usuario_id', $usuario->id)
             ->whereMonth('fecha', now()->month)
             ->whereYear('fecha', now()->year)
             ->count();
         $totalMateriales = RegistroReciclaje::where('usuario_id', $usuario->id)->sum('cantidad_kg');
-//$puntosTotal = RegistroReciclaje::where('usuario_id', $usuario->id)->sum('cantidad_kg');
+
 
         return [
             Stat::make('Mis Puntos Totales', $puntosTotal ?: 0)

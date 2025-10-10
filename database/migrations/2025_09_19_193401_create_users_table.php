@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // En la migración de users
+        
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('rol')->default('estudiante');
         });
 
-        // AGREGAR LA FOREIGN KEY DESPUÉS, en una migración separada o al final
+        
         Schema::table('users', function (Blueprint $table) {
             $table->foreign('grupo_id')->references('id')->on('grupos')->onDelete('cascade');
         });

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('registros_reciclaje', function (Blueprint $table) {
             $table->id();
             
-            // Usar unsignedBigInteger en lugar de foreignId para mayor control
+            
             $table->unsignedBigInteger('usuario_id');
             $table->unsignedBigInteger('material_id');
             $table->unsignedBigInteger('tipo_id');
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->index('fecha');
         });
 
-        // Agregar las foreign keys DESPUÉS de crear la tabla
+        
         Schema::table('registros_reciclaje', function (Blueprint $table) {
             $table->foreign('usuario_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('material_id')->references('id')->on('materiales')->onDelete('cascade');
@@ -42,7 +42,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Eliminar las foreign keys primero
+        
         Schema::table('registros_reciclaje', function (Blueprint $table) {
             $table->dropForeign(['usuario_id']);
             $table->dropForeign(['material_id']);

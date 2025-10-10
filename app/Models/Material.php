@@ -9,7 +9,7 @@ class Material extends Model
 {
     use HasFactory;
 
-    protected $table = 'materiales'; // 👈 Nombre correcto de la tabla
+    protected $table = 'materiales'; // 
 
     protected $fillable = ['nombre', 'unidad_medida', 'puntos'];
 

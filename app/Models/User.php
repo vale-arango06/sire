@@ -36,7 +36,7 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
-    // CORREGIDO: Permite acceso incluso si el rol es null o no está definido
+    
     public function canAccessPanel(Panel $panel): bool
     {
         // Si es panel admin

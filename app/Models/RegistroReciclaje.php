@@ -23,13 +23,11 @@ class RegistroReciclaje extends Model
         'unidad_medida',
     ];
 
-    /**
-     * Asignar usuario y calcular puntos automáticamente al crear un registro.
-     */
+    
     protected static function booted()
     {
         static::creating(function ($registro) {
-            // CORREGIDO: Solo asignar Auth::id() si usuario_id es NULL (no viene del formulario)
+            
             if (is_null($registro->usuario_id)) {
                 $registro->usuario_id = Auth::id();
             }

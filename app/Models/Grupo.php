@@ -31,7 +31,7 @@ class Grupo extends Model
         return $this->registrosReciclaje()->sum('puntos_ganados');
     }
 
-    // MÉTODOS ADICIONALES
+    
     public function getPuntosPromedioPorEstudiante()
     {
         $totalPuntos = $this->registrosReciclaje()->sum('puntos_ganados');

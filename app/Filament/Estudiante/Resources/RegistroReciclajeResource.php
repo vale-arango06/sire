@@ -21,9 +21,7 @@ class RegistroReciclajeResource extends Resource
     protected static ?string $pluralModelLabel = 'Registros de Reciclaje';
     protected static ?int $navigationSort = 3;
 
-    /**
-     * FILTRO CRÍTICO: Cada estudiante solo verá sus propios registros
-     */
+    
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
@@ -32,7 +30,7 @@ class RegistroReciclajeResource extends Resource
 
     public static function form(Form $form): Form
     {
-        // Sin formulario - solo lectura
+        
         return $form->schema([]);
     }
 
