@@ -21,7 +21,6 @@ class RegistroReciclajeResource extends Resource
     protected static ?string $pluralModelLabel = 'Registros de Reciclaje';
     protected static ?int $navigationSort = 3;
 
-    
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
@@ -30,7 +29,6 @@ class RegistroReciclajeResource extends Resource
 
     public static function form(Form $form): Form
     {
-        
         return $form->schema([]);
     }
 
@@ -56,11 +54,12 @@ class RegistroReciclajeResource extends Resource
 
                 Tables\Columns\TextColumn::make('cantidad')
                     ->label('Cantidad')
+                    ->formatStateUsing(fn ($state) => number_format($state, 0))
                     ->suffix(fn ($record) => ' ' . ($record->material->unidad_medida ?? '')),
 
                 Tables\Columns\TextColumn::make('cantidad_kg')
                     ->label('Peso')
-                    ->numeric(decimalPlaces: 2)
+                    ->formatStateUsing(fn ($state) => number_format($state, 0))
                     ->suffix(' kg')
                     ->weight('bold'),
 
@@ -77,15 +76,15 @@ class RegistroReciclajeResource extends Resource
                     ->relationship('material', 'nombre')
                     ->searchable()
                     ->preload(),
-                
+
                 Tables\Filters\SelectFilter::make('tipo_id')
                     ->label('Tipo')
                     ->relationship('tipo', 'nombre'),
-                
+
                 Tables\Filters\Filter::make('este_mes')
                     ->label('Este mes')
                     ->query(fn ($query) => $query->whereMonth('fecha', now()->month)->whereYear('fecha', now()->year)),
-                
+
                 Tables\Filters\Filter::make('esta_semana')
                     ->label('Esta semana')
                     ->query(fn ($query) => $query->whereBetween('fecha', [now()->startOfWeek(), now()->endOfWeek()])),
@@ -118,7 +117,6 @@ class RegistroReciclajeResource extends Resource
 
     public static function canView($record): bool
     {
-        // Solo puede ver sus propios registros
         return $record->usuario_id === Auth::id();
     }
 

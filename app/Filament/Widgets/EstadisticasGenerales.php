@@ -19,7 +19,7 @@ class EstadisticasGenerales extends BaseWidget
                 ->descriptionIcon('heroicon-m-users')
                 ->color('success'),
             
-            Stat::make('Total Materiales Reciclados', RegistroReciclaje::sum('cantidad_kg') . ' kg')
+            Stat::make('Total Materiales Reciclados', number_format(RegistroReciclaje::sum('cantidad_kg'), 0) . ' kg')
                 ->description('Cantidad total reciclada')
                 ->descriptionIcon('heroicon-m-cube')
                 ->color('info'),

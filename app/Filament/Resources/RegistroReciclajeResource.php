@@ -64,14 +64,14 @@ class RegistroReciclajeResource extends Resource
                     ->label('Cantidad')
                     ->numeric()
                     ->minValue(0)
-                    ->step(0.01)
+                    ->step(1) // solo enteros
                     ->required(),
 
                 Forms\Components\TextInput::make('cantidad_kg')
                     ->label('Cantidad en KG')
                     ->numeric()
                     ->minValue(0)
-                    ->step(0.01)
+                    ->step(1) // solo enteros
                     ->required()
                     ->helperText('Los puntos se calcularán automáticamente'),
 
@@ -108,11 +108,15 @@ class RegistroReciclajeResource extends Resource
 
                 Tables\Columns\TextColumn::make('cantidad')
                     ->label('Cantidad')
-                    ->suffix(fn ($record) => ' ' . ($record->material->unidad_medida ?? '')),
+                    ->numeric(decimalPlaces: 0)
+                    ->formatStateUsing(fn ($state) => intval($state))
+                    ->suffix(fn ($record) => ' ' . ($record->material->unidad_medida ?? ''))
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('cantidad_kg')
                     ->label('Peso (kg)')
-                    ->numeric(decimalPlaces: 2)
+                    ->numeric(decimalPlaces: 0)
+                    ->formatStateUsing(fn ($state) => intval($state))
                     ->suffix(' kg')
                     ->sortable(),
 
