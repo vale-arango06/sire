@@ -23,7 +23,6 @@ class RegistroReciclaje extends Model
         'unidad_medida',
     ];
 
-    
     protected static function booted()
     {
         static::creating(function ($registro) {
@@ -32,9 +31,27 @@ class RegistroReciclaje extends Model
                 $registro->usuario_id = Auth::id();
             }
 
-            // Calcular puntos automáticamente
-            if (!empty($registro->cantidad_kg)) {
-                $registro->puntos_ganados = $registro->cantidad_kg * 2;
+            // Asignar cantidad igual a cantidad_kg automáticamente
+            if (empty($registro->cantidad)) {
+                $registro->cantidad = $registro->cantidad_kg;
+            }
+
+            // Asignar un tipo de reciclaje por defecto (el primero disponible)
+            if (is_null($registro->tipo_id)) {
+                $tipo = TipoReciclaje::first();
+                if ($tipo) {
+                    $registro->tipo_id = $tipo->id;
+                }
+            }
+
+            // Calcular puntos usando los puntos REALES del material
+            if (!empty($registro->cantidad_kg) && !empty($registro->material_id)) {
+                $material = Material::find($registro->material_id);
+                if ($material) {
+                    $registro->puntos_ganados = $registro->cantidad_kg * $material->puntos;
+                } else {
+                    $registro->puntos_ganados = 0;
+                }
             } else {
                 $registro->puntos_ganados = 0;
             }

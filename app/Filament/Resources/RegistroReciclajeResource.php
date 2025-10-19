@@ -48,11 +48,6 @@ class RegistroReciclajeResource extends Resource
                     ->preload()
                     ->required(),
 
-                Forms\Components\Select::make('tipo_id')
-                    ->label('Tipo de Reciclaje')
-                    ->relationship('tipo', 'nombre')
-                    ->required(),
-
                 Forms\Components\Select::make('grupo_id')
                     ->label('Grupo')
                     ->relationship('grupo', 'nombre')
@@ -60,18 +55,11 @@ class RegistroReciclajeResource extends Resource
                     ->preload()
                     ->required(),
 
-                Forms\Components\TextInput::make('cantidad')
-                    ->label('Cantidad')
-                    ->numeric()
-                    ->minValue(0)
-                    ->step(1) // solo enteros
-                    ->required(),
-
                 Forms\Components\TextInput::make('cantidad_kg')
                     ->label('Cantidad en KG')
                     ->numeric()
                     ->minValue(0)
-                    ->step(1) // solo enteros
+                    ->step(0.01)
                     ->required()
                     ->helperText('Los puntos se calcularán automáticamente'),
 
@@ -82,56 +70,45 @@ class RegistroReciclajeResource extends Resource
             ]);
     }
 
-    public static function table(Table $table): Table
-    {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('usuario.name')
-                    ->label('Estudiante')
-                    ->searchable()
-                    ->sortable(),
+public static function table(Table $table): Table
+{
+    return $table
+        ->columns([
+            Tables\Columns\TextColumn::make('usuario.name')
+                ->label('Estudiante')
+                ->searchable()
+                ->sortable(),
 
-                Tables\Columns\TextColumn::make('material.nombre')
-                    ->label('Material')
-                    ->badge()
-                    ->color('info')
-                    ->sortable(),
+            Tables\Columns\TextColumn::make('material.nombre')
+                ->label('Material')
+                ->badge()
+                ->color('info')
+                ->sortable(),
 
-                Tables\Columns\TextColumn::make('tipo.nombre')
-                    ->label('Tipo')
-                    ->badge()
-                    ->color('primary'),
+            Tables\Columns\TextColumn::make('grupo.nombre')
+                ->label('Grupo')
+                ->sortable(),
 
-                Tables\Columns\TextColumn::make('grupo.nombre')
-                    ->label('Grupo')
-                    ->sortable(),
+            Tables\Columns\TextColumn::make('cantidad_kg')
+                ->label('Peso (kg)')
+                ->numeric(decimalPlaces: 0)
+                ->formatStateUsing(fn ($state) => intval($state))
+                ->suffix(' kg')
+                ->sortable(),
 
-                Tables\Columns\TextColumn::make('cantidad')
-                    ->label('Cantidad')
-                    ->numeric(decimalPlaces: 0)
-                    ->formatStateUsing(fn ($state) => intval($state))
-                    ->suffix(fn ($record) => ' ' . ($record->material->unidad_medida ?? ''))
-                    ->sortable(),
+            Tables\Columns\TextColumn::make('puntos_ganados')
+                ->label('Puntos')
+                ->numeric()
+                ->badge()
+                ->color('success')
+                ->sortable(),
 
-                Tables\Columns\TextColumn::make('cantidad_kg')
-                    ->label('Peso (kg)')
-                    ->numeric(decimalPlaces: 0)
-                    ->formatStateUsing(fn ($state) => intval($state))
-                    ->suffix(' kg')
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('puntos_ganados')
-                    ->label('Puntos')
-                    ->numeric()
-                    ->badge()
-                    ->color('success')
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('fecha')
-                    ->label('Fecha')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
-            ])
+            Tables\Columns\TextColumn::make('fecha')
+                ->label('Fecha')
+                ->dateTime('d/m/Y H:i')
+                ->sortable(),
+        ])
+        
             ->filters([
                 Tables\Filters\SelectFilter::make('usuario_id')
                     ->label('Estudiante')
